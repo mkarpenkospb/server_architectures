@@ -29,8 +29,15 @@ public class ClientHolder implements Runnable {
              DataOutputStream os = new DataOutputStream(socket.getOutputStream())
         ) {
             while (true) {
-                is.readInt();
-                IntegerArray clientData = IntegerArray.parseDelimitedFrom(is);
+                int messageSize = is.readInt();
+
+                byte[] buffer = new byte[messageSize];
+                int received = 0;
+                while (received != messageSize) {
+                    received += is.read(buffer);
+                }
+
+                IntegerArray clientData = IntegerArray.parseFrom(buffer);
                 List<Integer> copy = new ArrayList<>(clientData.getArrayList());
                 Future<List<Integer>> future = executor.submit(new ServerTask(copy));
                 replier.execute(new ReplyTask(os, future.get()));

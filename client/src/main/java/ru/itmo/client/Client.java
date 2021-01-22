@@ -37,12 +37,20 @@ public class Client {
                 IntegerArray request = IntegerArray.newBuilder()
                         .addAllArray(data).build();
                 os.writeInt(request.getSerializedSize());
-                request.writeDelimitedTo(os);
+
+                os.write(request.toByteArray());
                 os.flush();
 
                 // ------------------ get respond ----------------
-                is.readInt();
-                IntegerArray serverResponse = IntegerArray.parseDelimitedFrom(is);
+                int messageSize = is.readInt();
+
+                byte[] buffer = new byte[messageSize];
+                int received = 0;
+                while (received != messageSize) {
+                    received += is.read(buffer);
+                }
+
+                IntegerArray serverResponse = IntegerArray.parseFrom(buffer);
                 System.out.println(serverResponse.getArrayList());
 
                 // ------------------ sleep --------------------

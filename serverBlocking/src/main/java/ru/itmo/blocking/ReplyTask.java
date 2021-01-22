@@ -23,7 +23,7 @@ public class ReplyTask implements Runnable {
                     .addAllArray(sortedData)
                     .build();
             os.writeInt(response.getSerializedSize());
-            response.writeDelimitedTo(os);
+            os.write(response.toByteArray());
             os.flush();
         } catch (Exception e) {
             e.printStackTrace();
