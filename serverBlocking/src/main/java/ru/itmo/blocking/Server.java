@@ -1,4 +1,4 @@
-package ru.itmo.nthreads;
+package ru.itmo.blocking;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -22,6 +22,7 @@ public class Server {
     void start() throws IOException {
         executor = Executors.newFixedThreadPool(threadsNum);
         try(ServerSocket server = new ServerSocket(port)) {
+            System.out.print("Server started");
             while (true) {
                 Socket socket = server.accept();
                 Thread thread = new Thread(new ClientHolder(socket, executor));

@@ -1,10 +1,11 @@
-package ru.itmo.nthreads;
+package ru.itmo.blocking;
 
 import ru.itmo.protocol.Protocol.IntegerArray;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -29,8 +30,9 @@ public class ClientHolder implements Runnable {
         ) {
             while (true) {
                 is.readInt();
-                IntegerArray clientData = IntegerArray.parseFrom(is);
-                Future<List<Integer>> future = executor.submit(new ServerTask(clientData.getArrayList()));
+                IntegerArray clientData = IntegerArray.parseDelimitedFrom(is);
+                List<Integer> copy = new ArrayList<>(clientData.getArrayList());
+                Future<List<Integer>> future = executor.submit(new ServerTask(copy));
                 replier.execute(new ReplyTask(os, future.get()));
             }
         } catch (Throwable e) {

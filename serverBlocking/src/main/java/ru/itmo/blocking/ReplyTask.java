@@ -1,5 +1,4 @@
-package ru.itmo.nthreads;
-
+package ru.itmo.blocking;
 import ru.itmo.protocol.Protocol;
 import ru.itmo.protocol.Protocol.IntegerArray;
 
@@ -24,7 +23,7 @@ public class ReplyTask implements Runnable {
                     .addAllArray(sortedData)
                     .build();
             os.writeInt(response.getSerializedSize());
-            response.writeTo(os);
+            response.writeDelimitedTo(os);
             os.flush();
         } catch (Exception e) {
             e.printStackTrace();

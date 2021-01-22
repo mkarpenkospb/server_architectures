@@ -3,7 +3,7 @@ package ru.itmo.client;
 
 import org.apache.commons.cli.*;
 
-public class Main {
+public class ClientMain {
     private static final Options posixOptions = new Options();
 
     static {

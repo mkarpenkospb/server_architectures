@@ -37,13 +37,13 @@ public class Client {
                 IntegerArray request = IntegerArray.newBuilder()
                         .addAllArray(data).build();
                 os.writeInt(request.getSerializedSize());
-                request.writeTo(os);
+                request.writeDelimitedTo(os);
                 os.flush();
 
                 // ------------------ get respond ----------------
                 is.readInt();
-                IntegerArray serverResponse = IntegerArray.parseFrom(is);
-                printResponse(serverResponse.getArrayList());
+                IntegerArray serverResponse = IntegerArray.parseDelimitedFrom(is);
+                System.out.println(serverResponse.getArrayList());
 
                 // ------------------ sleep --------------------
                 Thread.sleep(d);
@@ -63,10 +63,4 @@ public class Client {
         return data;
     }
 
-    private void printResponse(List<Integer> data) {
-        for (Integer item : data) {
-            System.out.print(data);
-            System.out.print(", ");
-        }
-    }
 }

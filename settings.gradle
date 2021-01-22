@@ -1,6 +1,6 @@
 rootProject.name = 'server_architectures'
 include 'client'
-include 'serverNthreads'
+include 'serverBlocking'
 include 'serverNonBlocking'
 include 'serverAsynch'
 include 'protocol'
