@@ -2,8 +2,9 @@ package ru.itmo.nthreads;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-public class ServerTask implements Runnable {
+public class ServerTask implements Callable<List<Integer>> {
     private final List<Integer> data;
 
     private void insertionSort() {
@@ -21,7 +22,8 @@ public class ServerTask implements Runnable {
 
     // insertion sort
     @Override
-    public void run() {
+    public List<Integer> call() {
         insertionSort();
+        return data;
     }
 }

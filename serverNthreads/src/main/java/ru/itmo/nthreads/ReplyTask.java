@@ -9,24 +9,26 @@ import java.net.Socket;
 import java.util.List;
 
 public class ReplyTask implements Runnable {
-    private final Socket socket;
+    private final DataOutputStream os;
     private final List<Integer> sortedData;
 
-    public ReplyTask(Socket socket, List<Integer> sortedData) {
-        this.socket = socket;
+    public ReplyTask(DataOutputStream os, List<Integer> sortedData) {
+        this.os = os;
         this.sortedData = sortedData;
     }
 
     @Override
     public void run() {
-        try (DataOutputStream os = new DataOutputStream(socket.getOutputStream())) {
+        try {
             IntegerArray response = IntegerArray.newBuilder()
                     .addAllArray(sortedData)
                     .build();
             os.writeInt(response.getSerializedSize());
             response.writeTo(os);
+            os.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 }
