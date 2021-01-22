@@ -1,10 +1,10 @@
-package ru.itmo.blocking;
+package ru.itmo.nonblocking;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 
-public class ServerTask implements Callable<List<Integer>> {
+public class ServerTask implements Runnable {
+    private final ClientData clientData;
     private final List<Integer> data;
 
     private void insertionSort() {
@@ -16,16 +16,15 @@ public class ServerTask implements Callable<List<Integer>> {
         }
     }
 
-    ServerTask(List<Integer> data) {
+
+    ServerTask(ClientData clientData, List<Integer> data) {
+        this.clientData = clientData;
         this.data = data;
     }
 
-    // insertion sort
-    @Override
-    public List<Integer> call() {
-        insertionSort();
 
-//        System.out.println(data);
-        return data;
+    @Override
+    public void run() {
+
     }
 }

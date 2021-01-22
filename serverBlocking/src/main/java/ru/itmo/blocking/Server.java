@@ -11,16 +11,15 @@ public class Server {
     private final int port;
     private final int threadsNum;
 
-    private ExecutorService executor;
-
-
     public Server(int port, int threadsNum) {
         this.port = port;
         this.threadsNum = threadsNum;
     }
 
+
+
     void start() throws IOException {
-        executor = Executors.newFixedThreadPool(threadsNum);
+        ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
         try(ServerSocket server = new ServerSocket(port)) {
             System.out.print("Server started");
             while (true) {
