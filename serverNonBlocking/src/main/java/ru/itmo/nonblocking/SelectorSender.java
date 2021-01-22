@@ -30,8 +30,10 @@ public class SelectorSender implements Runnable {
                     if (key.isWritable()) {
                         ClientTaskQueue tasks = (ClientTaskQueue) key.attachment();
                         SenderInfo info = tasks.getInfo();
-                        info.sendData();
-                        if (info.isReady()) {
+                        if (!info.isEmpty()) {
+                            info.sendData();
+                        }
+                        if (info.isReady() || info.isEmpty()) {
                             info.reset();
                             ByteBuffer head = tasks.getNextBuffer();
                             if (head == null) {
@@ -42,13 +44,10 @@ public class SelectorSender implements Runnable {
                             }
                         }
                     }
-
-                    Iterator<ClientTaskQueue> iterClients = clients.iterator();
-                    while (iterClients.hasNext()) {
-                        ClientTaskQueue current = iterClients.next();
-                        if (current.setRegistered()) {
-                            current.getChannel().register(selector, SelectionKey.OP_WRITE, current);
-                        }
+                }
+                for (ClientTaskQueue current : clients) {
+                    if (current.setRegistered()) {
+                        current.getChannel().register(selector, SelectionKey.OP_WRITE, current);
                     }
                 }
             }

@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
+    private long ids = 0;
     private final int port;
     private final int threadsNum;
     // TODO ? А если кто-то из клиентов отвалился, выкинуть его отсюда?
@@ -28,24 +29,26 @@ public class Server {
         try (ServerSocketChannel server = ServerSocketChannel.open()) {
             server.bind(new InetSocketAddress(this.port));
             // серверный канал блокирующий
-            Selector selector = Selector.open();
+            Selector selectorReceiver = Selector.open();
+            Selector selectorSender = Selector.open();
 
-            Thread receiver = new Thread(new SelectorReceiver(selector, executor));
+            Thread receiver = new Thread(new SelectorReceiver(selectorReceiver, executor));
             receiver.setDaemon(true);
             receiver.start();
 
-            Thread sender = new Thread(new SelectorSender(selector, clients));
+            Thread sender = new Thread(new SelectorSender(selectorSender, clients));
             sender.setDaemon(true);
             sender.start();
 
             while (true) {
-                SocketChannel client = server.accept();
-                client.configureBlocking(false);
-                ClientTaskQueue clientTasks = new ClientTaskQueue(new SenderInfo(client));
+                SocketChannel clientChannel = server.accept();
+                clientChannel.configureBlocking(false);
+                ClientTaskQueue clientTasks = new ClientTaskQueue(ids++, new SenderInfo(clientChannel), selectorSender);
                 clients.add(clientTasks);
 
-                client.register(selector,
-                        SelectionKey.OP_READ, new ReceiverInfo(client,  clientTasks));
+                clientChannel.register(selectorReceiver,
+                        SelectionKey.OP_READ, new ReceiverInfo(clientChannel,  clientTasks, clients));
+                selectorReceiver.wakeup();
                 System.out.println("new client registered");
 
             }

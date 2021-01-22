@@ -26,7 +26,7 @@ public class SelectorReceiver implements Runnable {
         Iterator<SelectionKey> iter;
         try {
             while (true) {
-                selector.select();
+                selector.select(10);
                 selectedKeys = selector.selectedKeys();
                 iter = selectedKeys.iterator();
                 while (iter.hasNext()) {
@@ -35,6 +35,10 @@ public class SelectorReceiver implements Runnable {
                         ReceiverInfo info = (ReceiverInfo) key.attachment();
                         if (!info.isSized()) {
                             info.setMessageSize();
+                            continue;
+                        }
+                        if (info.isRemoved()) {
+                            key.cancel();
                             continue;
                         }
                         info.receiveData();
@@ -46,7 +50,7 @@ public class SelectorReceiver implements Runnable {
                 }
             }
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
     }
 }

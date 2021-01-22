@@ -3,6 +3,7 @@ package ru.itmo.nonblocking;
 import ru.itmo.protocol.Protocol.IntegerArray;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -13,13 +14,17 @@ enum State {
 }
 
 public class ClientTaskQueue {
+    private final long id;
     private static final int INT_SIZE = 4;
     private final SenderInfo info;
+    private final Selector selectorSender;
     private final ConcurrentLinkedDeque<ByteBuffer> queue = new ConcurrentLinkedDeque<>();
     private final AtomicReference<State> state = new AtomicReference<>(State.UNREGISTERED);
 
-    public ClientTaskQueue(SenderInfo info) {
+    public ClientTaskQueue(long id, SenderInfo info, Selector selectorSender) {
         this.info = info;
+        this.selectorSender = selectorSender;
+        this.id = id;
     }
 
     public void add(List<Integer> sorted) {
@@ -32,6 +37,7 @@ public class ClientTaskQueue {
         buffer.put(response.toByteArray());
         queue.add(buffer);
         state.compareAndSet(State.UNREGISTERED, State.NEW);
+        selectorSender.wakeup();
     }
 
 
@@ -54,8 +60,25 @@ public class ClientTaskQueue {
         return state.compareAndSet(State.NEW, State.REGISTERED);
     }
     // с однопоточным селектором тут false невозможен, ибо флаг State.REGISTERED только он ставит
-    public boolean setUnregistered() {
-        return state.compareAndSet(State.REGISTERED, State.UNREGISTERED);
+    public void setUnregistered() {
+        state.compareAndSet(State.REGISTERED, State.UNREGISTERED);
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof ClientTaskQueue) {
+            return  ((ClientTaskQueue) other).id == this.id;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) id;
     }
 
 }

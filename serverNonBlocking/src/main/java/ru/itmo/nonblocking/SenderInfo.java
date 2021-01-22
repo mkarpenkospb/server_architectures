@@ -42,4 +42,8 @@ public class SenderInfo {
         ready = false;
         data = null;
     }
+
+    public boolean isEmpty() {
+        return data == null;
+    }
 }
