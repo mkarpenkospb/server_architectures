@@ -1,9 +1,10 @@
 package ru.itmo.nonblocking;
 
-import java.nio.channels.Channel;
+import ru.itmo.protocol.Protocol;
+import ru.itmo.protocol.Protocol.IntegerArray;
+
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -31,14 +32,15 @@ public class SelectorReceiver implements Runnable {
                 while (iter.hasNext()) {
                     SelectionKey key = iter.next();
                     if (key.isReadable()) {
-                        ClientInfo info = (ClientInfo) key.attachment();
+                        ReceiverInfo info = (ReceiverInfo) key.attachment();
                         if (!info.isSized()) {
                             info.setMessageSize();
                             continue;
                         }
                         info.receiveData();
                         if (info.isReady()) {
-
+                            executor.submit(new ServerTask(info.getClientTasks(), info.getMessage()));
+                            info.reset();
                         }
                     }
                 }

@@ -1,21 +1,30 @@
 package ru.itmo.nonblocking;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import ru.itmo.protocol.Protocol;
+import ru.itmo.protocol.Protocol.IntegerArray;
+
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
+import java.util.List;
 
-public class ClientInfo {
+public class ReceiverInfo {
     private static final int INT_SIZE = 4;
 
     private int messageSize;
     private int received = 0;
     private ByteBuffer data;
     private final ByteBuffer dataSize = ByteBuffer.allocate(INT_SIZE);
+    private final ClientTaskQueue clientTasks;
     private final SocketChannel socketChannel;
     private boolean ready = false;
     private boolean sized = false;
 
-    public ClientInfo(SocketChannel socketChannel) {
+
+    public ReceiverInfo(SocketChannel socketChannel, ClientTaskQueue clientTasks) {
         this.socketChannel = socketChannel;
+        this.clientTasks = clientTasks;
     }
 
     public SocketChannel getSocketChannel() {
@@ -46,6 +55,7 @@ public class ClientInfo {
             if (received == messageSize) {
                 received = 0;
                 ready = true;
+                data.flip();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,8 +65,18 @@ public class ClientInfo {
     public boolean isReady() {
         return ready;
     }
+
     public boolean isSized() {
         return sized;
+    }
+
+    public ClientTaskQueue getClientTasks() {
+        return  clientTasks;
+    }
+
+    List<Integer> getMessage() throws InvalidProtocolBufferException {
+        IntegerArray request = IntegerArray.parseFrom(data);
+        return request.getArrayList();
     }
 
     public void reset() {

@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ServerTask implements Runnable {
-    private final ClientData clientData;
+    private final ClientTaskQueue clientTasks;
     private final List<Integer> data;
 
     private void insertionSort() {
@@ -16,15 +16,15 @@ public class ServerTask implements Runnable {
         }
     }
 
-
-    ServerTask(ClientData clientData, List<Integer> data) {
-        this.clientData = clientData;
+    ServerTask(ClientTaskQueue clientTasks, List<Integer> data) {
+        this.clientTasks = clientTasks;
         this.data = data;
     }
 
 
     @Override
     public void run() {
-
+        insertionSort();
+        clientTasks.add(data);
     }
 }
