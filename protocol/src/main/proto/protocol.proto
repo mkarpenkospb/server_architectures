@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package ru.itmo.protocol;
+
+message IntegerArray {
+  repeated int32 array = 1;
+}
+
+
