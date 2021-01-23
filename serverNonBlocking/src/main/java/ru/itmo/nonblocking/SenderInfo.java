@@ -1,5 +1,7 @@
 package ru.itmo.nonblocking;
 
+import ru.itmo.protocol.ServerStat;
+
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -7,6 +9,7 @@ public class SenderInfo {
     private ByteBuffer data;
     private final SocketChannel socketChannel;
     private boolean ready = false;
+    private ServerStat.ClientStat clientTime;
 
     public SenderInfo(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
@@ -20,6 +23,14 @@ public class SenderInfo {
         this.data = buffer;
         buffer.flip();
         this.ready = false;
+    }
+
+    public void setTimer(ServerStat.ClientStat clientTime) {
+        this.clientTime = clientTime;
+    }
+
+    public ServerStat.ClientStat getClientTime() {
+        return clientTime;
     }
 
     public void sendData() {
@@ -41,6 +52,7 @@ public class SenderInfo {
     public void reset() {
         ready = false;
         data = null;
+        clientTime = null;
     }
 
     public boolean isEmpty() {

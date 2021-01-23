@@ -1,6 +1,7 @@
 package ru.itmo.nonblocking;
 
 import ru.itmo.protocol.Protocol.IntegerArray;
+import ru.itmo.protocol.ServerStat;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
@@ -18,7 +19,7 @@ public class ClientTaskQueue {
     private static final int INT_SIZE = 4;
     private final SenderInfo info;
     private final Selector selectorSender;
-    private final ConcurrentLinkedDeque<ByteBuffer> queue = new ConcurrentLinkedDeque<>();
+    private final ConcurrentLinkedDeque<StatBuffer> queue = new ConcurrentLinkedDeque<>();
     private final AtomicReference<State> state = new AtomicReference<>(State.UNREGISTERED);
 
     public ClientTaskQueue(long id, SenderInfo info, Selector selectorSender) {
@@ -27,7 +28,7 @@ public class ClientTaskQueue {
         this.id = id;
     }
 
-    public void add(List<Integer> sorted) {
+    public void add(List<Integer> sorted, ServerStat.ClientStat clientTime) {
         IntegerArray response = IntegerArray.newBuilder()
                 .addAllArray(sorted)
                 .build();
@@ -35,11 +36,10 @@ public class ClientTaskQueue {
         ByteBuffer buffer = ByteBuffer.allocate(INT_SIZE + response.getSerializedSize());
         buffer.putInt(response.getSerializedSize());
         buffer.put(response.toByteArray());
-        queue.add(buffer);
+        queue.add(new StatBuffer(buffer, clientTime));
         state.compareAndSet(State.UNREGISTERED, State.NEW);
         selectorSender.wakeup();
     }
-
 
     public SocketChannel getChannel() {
         return info.getSocketChannel();
@@ -49,7 +49,7 @@ public class ClientTaskQueue {
         return info;
     }
 
-    public ByteBuffer getNextBuffer() {
+    public StatBuffer getNext() {
         if (!queue.isEmpty()) {
             return queue.pop();
         }
@@ -79,6 +79,24 @@ public class ClientTaskQueue {
     @Override
     public int hashCode() {
         return (int) id;
+    }
+
+    public static class StatBuffer {
+        private final ByteBuffer buffer;
+        private final ServerStat.ClientStat clientTime;
+
+        public StatBuffer(ByteBuffer buffer, ServerStat.ClientStat clientTime) {
+            this.buffer = buffer;
+            this.clientTime = clientTime;
+        }
+
+        public ByteBuffer getBuffer() {
+            return buffer;
+        }
+
+        public ServerStat.ClientStat getClientTime() {
+            return clientTime;
+        }
     }
 
 }

@@ -1,8 +1,8 @@
 package ru.itmo.asynch;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import ru.itmo.protocol.Protocol;
 import ru.itmo.protocol.Protocol.IntegerArray;
+import ru.itmo.protocol.ServerStat;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -17,6 +17,9 @@ public class ServerTask implements Runnable {
     private final ByteBuffer data;
     private final AsynchronousSocketChannel client;
     private final RespondContext respondContext;
+    private final ServerStat statistic;
+    private final ServerStat.ClientStat clientTime;
+
 
     private static void insertionSort(List<Integer> array) {
         for (int i = 0; i < array.size(); i++) {
@@ -27,15 +30,20 @@ public class ServerTask implements Runnable {
         }
     }
 
-    ServerTask(AsynchronousSocketChannel client, ByteBuffer bytes, RespondContext respondContext) {
+    ServerTask(AsynchronousSocketChannel client, ByteBuffer bytes, RespondContext respondContext,
+               ServerStat.ClientStat clientTime, ServerStat statistic) {
         this.data = bytes;
         this.client = client;
         this.respondContext = respondContext;
+        this.statistic = statistic;
+        this.clientTime = clientTime;
     }
 
     @Override
     public void run() {
         try {
+            ServerStat.SortStat sortTime = statistic.getNewSortStat();
+            sortTime.start();
             List<Integer> array = new ArrayList<>(IntegerArray.parseFrom(data).getArrayList());
             insertionSort(array);
             IntegerArray response = IntegerArray.newBuilder().addAllArray(array).build();
@@ -45,12 +53,18 @@ public class ServerTask implements Runnable {
             buf.put(response.toByteArray());
             buf.flip();
             respondContext.setBuffer(buf);
-            //  Контекст не нужен тут особо
+            respondContext.setClientStat(clientTime);
+            sortTime.finish();
+            sortTime.update();
+
             client.write(respondContext.getData(), respondContext, new CompletionHandler<>() {
                 @Override
                 public void completed(Integer result, RespondContext attachment) {
                     if (!attachment.isFinished()) {
                         client.write(attachment.getData(), attachment, this);
+                    } else {
+                        attachment.getClientStat().finish();
+                        attachment.getClientStat().update();
                     }
                 }
 

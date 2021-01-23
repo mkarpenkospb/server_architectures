@@ -1,5 +1,7 @@
 package ru.itmo.nonblocking;
 
+import ru.itmo.protocol.ServerStat;
+
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -11,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
+    private ServerStat statistic;
     private long ids = 0;
     private final int port;
     private final int threadsNum;
@@ -47,7 +50,7 @@ public class Server {
                 clients.add(clientTasks);
 
                 clientChannel.register(selectorReceiver,
-                        SelectionKey.OP_READ, new ReceiverInfo(clientChannel,  clientTasks, clients));
+                        SelectionKey.OP_READ, new ReceiverInfo(clientChannel,  clientTasks, clients, statistic));
                 selectorReceiver.wakeup();
                 System.out.println("new client registered");
 

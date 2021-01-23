@@ -34,13 +34,18 @@ public class SelectorSender implements Runnable {
                             info.sendData();
                         }
                         if (info.isReady() || info.isEmpty()) {
+                            if (info.getClientTime() != null && info.getClientTime().isFinished()) {
+                                info.getClientTime().finish();
+                                info.getClientTime().update();
+                            }
                             info.reset();
-                            ByteBuffer head = tasks.getNextBuffer();
+                            ClientTaskQueue.StatBuffer head = tasks.getNext();
                             if (head == null) {
                                 key.cancel();
                                 tasks.setUnregistered();
                             } else {
-                                info.setBuffer(head);
+                                info.setBuffer(head.getBuffer());
+                                info.setTimer(head.getClientTime());
                             }
                         }
                     }

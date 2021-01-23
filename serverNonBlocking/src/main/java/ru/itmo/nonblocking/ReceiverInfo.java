@@ -1,13 +1,12 @@
 package ru.itmo.nonblocking;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import ru.itmo.protocol.Protocol;
 import ru.itmo.protocol.Protocol.IntegerArray;
+import ru.itmo.protocol.ServerStat;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -26,19 +25,33 @@ public class ReceiverInfo {
     private boolean ready = false;
     private boolean sized = false;
     private boolean removed = false;
+    private ServerStat.ClientStat clientTime;
+    private final ServerStat statistic;
 
-
-    public ReceiverInfo(SocketChannel socketChannel, ClientTaskQueue clientTasks, Set<ClientTaskQueue> clients) {
+    public ReceiverInfo(SocketChannel socketChannel, ClientTaskQueue clientTasks, Set<ClientTaskQueue> clients, ServerStat statistic) {
         this.socketChannel = socketChannel;
         this.clientTasks = clientTasks;
         this.clients = clients;
+        this.clientTime = statistic.getNewClientStat();
+        this.statistic = statistic;
     }
 
     public SocketChannel getSocketChannel() {
         return socketChannel;
     }
 
+    public ServerStat.ClientStat getClientTime() {
+        return clientTime;
+    }
+
+    public ServerStat getStatistic() {
+        return statistic;
+    }
+
     public void setMessageSize() {
+        if (!clientTime.isStarted()) {
+            clientTime.start();
+        }
         try {
             if (received < INT_SIZE) {
                 received += socketChannel.read(dataSize);
@@ -103,5 +116,6 @@ public class ReceiverInfo {
         messageSize = 0;
         data.clear();
         dataSize.clear();
+        clientTime = statistic.getNewClientStat();
     }
 }

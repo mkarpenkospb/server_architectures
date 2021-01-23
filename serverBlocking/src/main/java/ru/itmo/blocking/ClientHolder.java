@@ -1,6 +1,7 @@
 package ru.itmo.blocking;
 
 import ru.itmo.protocol.Protocol.IntegerArray;
+import ru.itmo.protocol.ServerStat;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -16,11 +17,14 @@ public class ClientHolder implements Runnable {
     private final Socket socket;
     private final ExecutorService executor;
     private final Executor replier;
+    private final ServerStat statistic;
 
-    public ClientHolder(Socket socket, ExecutorService executor) {
+
+    public ClientHolder(Socket socket, ExecutorService executor, ServerStat statistic) {
         this.socket = socket;
         this.executor = executor;
         this.replier = Executors.newSingleThreadExecutor();
+        this.statistic = statistic;
     }
 
     @Override
@@ -39,8 +43,10 @@ public class ClientHolder implements Runnable {
 
                 IntegerArray clientData = IntegerArray.parseFrom(buffer);
                 List<Integer> copy = new ArrayList<>(clientData.getArrayList());
-                Future<List<Integer>> future = executor.submit(new ServerTask(copy));
-                replier.execute(new ReplyTask(os, future.get()));
+                ServerStat.ClientStat clientTime = statistic.getNewClientStat();
+                clientTime.start();
+                Future<List<Integer>> future = executor.submit(new ServerTask(copy, statistic.getNewSortStat()));
+                replier.execute(new ReplyTask(os, future.get(), clientTime));
             }
         } catch (Throwable e) {
             e.printStackTrace();

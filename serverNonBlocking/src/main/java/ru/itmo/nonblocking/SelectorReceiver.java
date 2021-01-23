@@ -1,8 +1,5 @@
 package ru.itmo.nonblocking;
 
-import ru.itmo.protocol.Protocol;
-import ru.itmo.protocol.Protocol.IntegerArray;
-
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
@@ -40,7 +37,7 @@ public class SelectorReceiver implements Runnable {
                         }
                         info.receiveData();
                         if (info.isReady()) {
-                            executor.submit(new ServerTask(info.getClientTasks(), info.getMessage()));
+                            executor.submit(new ServerTask(info.getClientTasks(), info.getMessage(), info.getStatistic().getNewSortStat(), info.getClientTime()));
                             info.reset();
                         }
                     }

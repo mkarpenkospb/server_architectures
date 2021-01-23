@@ -1,5 +1,7 @@
 package ru.itmo.asynch;
 
+import ru.itmo.protocol.ServerStat;
+
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -8,12 +10,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
+    private final ServerStat statistic = new ServerStat();
     private final int port;
     private final int threadsNum;
 
     public Server(int port, int threadsNum) {
         this.port = port;
         this.threadsNum = threadsNum;
+    }
+
+    public ServerStat getStatistic() {
+        return statistic;
     }
 
     public void start() {
@@ -42,7 +49,9 @@ public class Server {
                                         client.read(attachment.getData(), attachment, this);
                                     } else {
                                         attachment.getData().flip();
-                                        executor.submit(new ServerTask(client, attachment.getData(), new RespondContext()));
+                                        executor.submit(new ServerTask(client, attachment.getData(), new RespondContext(),
+                                                statistic.getNewClientStat(), statistic
+                                                ));
 
                                         ReceiveContext newReceiveContext = new ReceiveContext();
                                         client.read(newReceiveContext.getDataSize(), newReceiveContext, this);
