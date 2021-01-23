@@ -9,12 +9,12 @@ import java.nio.channels.CompletionHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server {
+public class ServerAsynch {
     private final ServerStat statistic = new ServerStat();
     private final int port;
     private final int threadsNum;
 
-    public Server(int port, int threadsNum) {
+    public ServerAsynch(int port, int threadsNum) {
         this.port = port;
         this.threadsNum = threadsNum;
     }

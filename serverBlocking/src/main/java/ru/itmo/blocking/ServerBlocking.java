@@ -9,13 +9,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server {
+public class ServerBlocking {
 
     private final ServerStat statistic = new ServerStat();
     private final int port;
     private final int threadsNum;
 
-    public Server(int port, int threadsNum) {
+    public ServerBlocking(int port, int threadsNum) {
         this.port = port;
         this.threadsNum = threadsNum;
     }

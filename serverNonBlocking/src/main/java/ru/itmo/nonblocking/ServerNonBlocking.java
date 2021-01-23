@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server {
+public class ServerNonBlocking {
     private ServerStat statistic;
     private long ids = 0;
     private final int port;
@@ -20,7 +20,7 @@ public class Server {
     // TODO ? А если кто-то из клиентов отвалился, выкинуть его отсюда?
     private final Set<ClientTaskQueue> clients = new HashSet<>();
 
-    public Server(int port, int threadsNum) {
+    public ServerNonBlocking(int port, int threadsNum) {
         this.port = port;
         this.threadsNum = threadsNum;
     }

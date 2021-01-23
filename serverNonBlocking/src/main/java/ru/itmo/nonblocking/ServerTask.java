@@ -34,7 +34,7 @@ public class ServerTask implements Runnable {
         insertionSort();
         sortTime.finish();
         sortTime.update();
-        clientTasks.add(data);
+        clientTasks.add(data, clientTime);
 
     }
 }

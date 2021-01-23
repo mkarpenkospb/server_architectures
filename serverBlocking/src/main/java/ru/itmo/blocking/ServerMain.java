@@ -22,7 +22,7 @@ public class ServerMain {
 
             int port = Integer.parseInt(cmd.getOptionValue("port"));
             int threads = Integer.parseInt(cmd.getOptionValue("threads"));
-            Server server = new Server(port, threads);
+            ServerBlocking server = new ServerBlocking(port, threads);
             server.start();
         } catch (Exception e) {
             e.printStackTrace();
