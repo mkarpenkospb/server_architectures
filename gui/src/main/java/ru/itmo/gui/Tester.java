@@ -1,5 +1,6 @@
 package ru.itmo.gui;
 
+import javafx.scene.chart.XYChart;
 import ru.itmo.asynch.ServerAsynch;
 import ru.itmo.blocking.ServerBlocking;
 import ru.itmo.client.Client;
@@ -8,6 +9,9 @@ import ru.itmo.protocol.Server;
 import ru.itmo.protocol.ServerStat;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 public class Tester {
     private static int PORT = 8088;
@@ -15,15 +19,50 @@ public class Tester {
     private static int THREADS = 10;
     private Main.ExperimentParameters parameters;
 
+    private final ArrayList<XYChart.Data<Long, Double>> sorting = new ArrayList<>();
+    private final ArrayList<XYChart.Data<Long, Double>> clientOnServer = new ArrayList<>();
+    private final ArrayList<XYChart.Data<Long, Double>> clientFullTime = new ArrayList<>();
+
     public Tester(Main.ExperimentParameters parameters) {
         this.parameters = parameters;
     }
 
-    private void runClients(int M, long delta, int N) {
+    //https://www.baeldung.com/java-atomic-variables
+    public class Counter {
+        private final AtomicLong counter = new AtomicLong(0);
+
+        public long getValue() {
+            return counter.get();
+        }
+
+        public void increment(long value) {
+            while (true) {
+                long existingValue = getValue();
+                long newValue = existingValue + value;
+                if (counter.compareAndSet(existingValue, newValue)) {
+                    return;
+                }
+            }
+        }
+    }
+
+    public ArrayList<XYChart.Data<Long, Double>> getSorting() {
+        return sorting;
+    }
+    public ArrayList<XYChart.Data<Long, Double>> getClientOnServer() {
+        return clientOnServer;
+    }
+    public ArrayList<XYChart.Data<Long, Double>> getClientFullTime() {
+        return clientFullTime;
+    }
+
+    private long runClients(int M, long delta, int N) {
         ArrayList<Thread> threads = new ArrayList<>();
+        Counter cnt = new Counter();
+
         for (int i = 0; i < M; i++) {
             Thread t = new Thread(() -> {
-                new Client(HOST, PORT, parameters.X, N, delta).start();
+                cnt.increment(new Client(HOST, PORT, parameters.X, N, delta).start());
             });
             threads.add(t);
         }
@@ -35,6 +74,8 @@ public class Tester {
                 e.printStackTrace();
             }
         });
+
+        return cnt.getValue();
     }
 
     public void start() {
@@ -59,33 +100,47 @@ public class Tester {
         serverThread.setDaemon(true);
         serverThread.start();
         ServerStat stat = server.getStatistic();
+        Function<Long, Long> runClientsWithParam = getRunningClientsFunction();
+        Function<Long, Double> getDenominator = getDenominatorFunction();
         try {
-            switch (parameters.parameter) {
-                case N:
-                    int from = (int) parameters.from;
-                    int to = (int) parameters.to;
-                    int step = (int) parameters.step;
-                    for (int n = from; n < to; n += step) {
-                        runClients(parameters.M, parameters.delta, n);
-                        Thread.sleep(100);
-                        System.out.println(stat.getClientTime() / (long) parameters.X / (long) parameters.M);
-                        System.out.println(stat.getSortingTime() / (long) parameters.X / (long) parameters.M);
-                        server.updateStatistic();
-                    }
-
-                    break;
-                case M:
-                    server = new ServerBlocking(PORT, THREADS);
-                    break;
-                case DELTA:
-                    server = new ServerNonBlocking(PORT, THREADS);
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + parameters.architecture);
+            for (long p = parameters.from; p < parameters.to; p += parameters.step) {
+                long res = runClientsWithParam.apply(p);
+                Thread.sleep(100);
+                double denominator = getDenominator.apply(p);
+                sorting.add(new XYChart.Data<>(p, (double) stat.getSortingTime() / denominator));
+                clientOnServer.add(new XYChart.Data<>(p, (double) stat.getClientTime() /denominator));
+                clientFullTime.add(new XYChart.Data<>(p, (double) res / denominator));
+                server.updateStatistic();
             }
+            System.out.println("finished");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    private Function<Long, Double> getDenominatorFunction() {
+        switch (parameters.parameter) {
+            case N:
+            case DELTA:
+                return (Long n) -> (double) parameters.M / (double) parameters.X;
+            case M:
+                return (Long m) -> (double) m / (double) parameters.X;
+            default:
+                throw new IllegalStateException("Unexpected value: " + parameters.parameter);
+        }
+    }
+
+
+    private Function<Long, Long> getRunningClientsFunction() {
+        switch (parameters.parameter) {
+            case N:
+                return (Long n) -> runClients(parameters.M, parameters.delta, n.intValue());
+            case M:
+                return (Long m) -> runClients(m.intValue(), parameters.delta, parameters.N);
+            case DELTA:
+                return (Long d) -> runClients(parameters.M, d, parameters.N);
+            default:
+                throw new IllegalStateException("Unexpected value: " + parameters.parameter);
+        }
     }
 }

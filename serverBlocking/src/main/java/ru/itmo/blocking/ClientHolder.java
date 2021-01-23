@@ -5,6 +5,7 @@ import ru.itmo.protocol.ServerStat;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -38,12 +39,7 @@ public class ClientHolder implements Runnable {
              DataOutputStream os = new DataOutputStream(socket.getOutputStream())
         ) {
             while (true) {
-                byte[] sizeBuffer = new byte[4];
-                int receivedSize = 0;
-                while (receivedSize != 4) {
-                    receivedSize += is.read(sizeBuffer);
-                }
-                int messageSize = ByteBuffer.wrap(sizeBuffer).getInt();
+                int messageSize = is.readInt();
 
                 byte[] buffer = new byte[messageSize];
                 int received = 0;
@@ -59,7 +55,11 @@ public class ClientHolder implements Runnable {
                 replier.execute(new ReplyTask(os, future.get(), clientTime));
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            if (e instanceof EOFException) {
+//                System.out.println("data finished");
+            } else {
+                e.printStackTrace();
+            }
         }
     }
 }

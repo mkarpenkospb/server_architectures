@@ -8,8 +8,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,7 +20,7 @@ public class ServerNonBlocking implements Server {
     private final int port;
     private final int threadsNum;
     // TODO ? А если кто-то из клиентов отвалился, выкинуть его отсюда?
-    private final Set<ClientTaskQueue> clients = new HashSet<>();
+    private final Set<ClientTaskQueue> clients = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public ServerNonBlocking(int port, int threadsNum) {
         this.port = port;
@@ -53,7 +54,7 @@ public class ServerNonBlocking implements Server {
                 clientChannel.register(selectorReceiver,
                         SelectionKey.OP_READ, new ReceiverInfo(clientChannel,  clientTasks, clients, statistic));
                 selectorReceiver.wakeup();
-                System.out.println("new client registered");
+//                System.out.println("new client registered");
 
             }
         } catch (Exception e) {

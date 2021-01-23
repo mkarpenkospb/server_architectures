@@ -26,7 +26,8 @@ public class Client {
         this.d = d;
     }
 
-    public void start() {
+    public long start() {
+        long start = System.currentTimeMillis();
         List<Integer> data = generateArray();
         try (Socket socket = new Socket(host, port);
              DataOutputStream os = new DataOutputStream(socket.getOutputStream());
@@ -59,6 +60,7 @@ public class Client {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return System.currentTimeMillis() - start;
     }
 
 

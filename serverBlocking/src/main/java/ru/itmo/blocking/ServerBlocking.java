@@ -28,7 +28,7 @@ public class ServerBlocking implements Server {
     public void start() {
         ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
         try(ServerSocket server = new ServerSocket(port)) {
-            System.out.print("Server started");
+            System.out.println("Server started");
             while (true) {
                 Socket socket = server.accept();
                 Thread thread = new Thread(new ClientHolder(socket, executor, statistic));

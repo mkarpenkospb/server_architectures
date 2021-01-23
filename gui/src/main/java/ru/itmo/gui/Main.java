@@ -24,7 +24,6 @@ public class Main extends Application {
         long from;
         long to;
         long step;
-
         int X;
         int N;
         int M;
@@ -42,31 +41,27 @@ public class Main extends Application {
 
         stage.setTitle("Set testing parameters");
         Scene scene = new Scene(new Group(), 650, 150);
-        final String[] parameters = {"", ""};
 
-        final ComboBox<String> archComboBox = new ComboBox<>();
+        final ComboBox<Architecture> archComboBox = new ComboBox<>();
         archComboBox.getItems().addAll(
-                "blocking",
-                "nonblocking",
-                "asynch"
+                Architecture.BLOCKING,
+                Architecture.NONBLOCKING,
+                Architecture.ASYNCH
         );
-        archComboBox.setPromptText("architectures");
-        archComboBox.setValue("blocking");
+
+        archComboBox.setValue(Architecture.BLOCKING);
         archComboBox.setEditable(true);
-        archComboBox.valueProperty().addListener((ov, t, t1) -> parameters[0] = t1);
 
-
-        final ComboBox<String> estimationComboBox = new ComboBox<>();
+        final ComboBox<Parameter> estimationComboBox = new ComboBox<>();
         estimationComboBox.getItems().addAll(
-                "N",
-                "M",
-                "delta"
+                Parameter.N,
+                Parameter.M,
+                Parameter.DELTA
         );
 
-        estimationComboBox.setPromptText("architectures");
-        estimationComboBox.setValue("N");
+        estimationComboBox.setValue(Parameter.N);
         estimationComboBox.setEditable(true);
-        estimationComboBox.valueProperty().addListener((ov, t, t1) -> parameters[1] = t1);
+
         final TextField X = new TextField(""); X.setText("10");
         X.setPrefWidth(80);
         X.setMaxWidth(40);
@@ -100,34 +95,8 @@ public class Main extends Application {
 
         final Button button = new Button ("start");
         button.setOnAction((ActionEvent e) -> {
-            switch (archComboBox.getValue()) {
-                case "blocking":
-                    experimentParameters.architecture = Architecture.BLOCKING;
-                    break;
-                case "nonblocking":
-                    experimentParameters.architecture = Architecture.NONBLOCKING;
-                    break;
-                case "asynch":
-                    experimentParameters.architecture = Architecture.ASYNCH;
-                    break;
-                default:
-                    throw new RuntimeException("Unknown server type");
-            }
-
-            switch (estimationComboBox.getValue()) {
-                case "N":
-                    experimentParameters.parameter = Parameter.N;
-                    break;
-                case "M":
-                    experimentParameters.parameter = Parameter.M;
-                    break;
-                case "delta":
-                    experimentParameters.parameter = Parameter.DELTA;
-                    break;
-                default:
-                    throw new RuntimeException("Unknown Param Type");
-            }
-
+            experimentParameters.architecture = archComboBox.getValue();
+            experimentParameters.parameter = estimationComboBox.getValue();
             experimentParameters.X = Integer.parseInt(X.getText());
             experimentParameters.N = Integer.parseInt(N.getText());
             experimentParameters.M = Integer.parseInt(M.getText());
@@ -136,8 +105,9 @@ public class Main extends Application {
             experimentParameters.to = Long.parseLong(to.getText());
             experimentParameters.step = Long.parseLong(step.getText());
 
+            Tester tester = new Tester(experimentParameters);
+            tester.start();
 
-            new Tester(experimentParameters).start();
         });
 
         GridPane grid = new GridPane();
