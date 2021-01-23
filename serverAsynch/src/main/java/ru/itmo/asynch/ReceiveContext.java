@@ -4,9 +4,26 @@ import java.nio.ByteBuffer;
 
 public class ReceiveContext {
     private static final int INT_SIZE = 4;
+    private int received = 0;
     private final ByteBuffer dataSize = ByteBuffer.allocate(INT_SIZE);
     private int messageSize;
     private ByteBuffer data;
+    private boolean sized = false;
+    private boolean finished = false;
+
+    public void updateReceivedOnSized(int value) {
+        received += value;
+        if (received == INT_SIZE) {
+            sized = true;
+        }
+    }
+
+    public void updateReceivedOnData(int value) {
+        received += value;
+        if (received == messageSize) {
+            finished = true;
+        }
+    }
 
     public ByteBuffer getDataSize() {
         return dataSize;
@@ -16,10 +33,12 @@ public class ReceiveContext {
     }
 
     public boolean isSized() {
-        return !dataSize.hasRemaining();
+        return sized;
     }
 
     public void setSize() {
+        received = 0;
+        dataSize.flip();
         messageSize = dataSize.getInt();
     }
 
@@ -28,7 +47,7 @@ public class ReceiveContext {
     }
 
     public boolean isFinished() {
-        return !data.hasRemaining();
+        return finished;
     }
 
     public void allocateBuffer() {

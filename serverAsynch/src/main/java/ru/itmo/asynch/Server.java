@@ -1,6 +1,5 @@
 package ru.itmo.asynch;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -9,8 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
-    private static final int INT_SIZE = 4;
-
     private final int port;
     private final int threadsNum;
 
@@ -19,14 +16,14 @@ public class Server {
         this.threadsNum = threadsNum;
     }
 
-    public void start() throws IOException {
+    public void start() {
+        System.out.println("server start");
         ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
         try (AsynchronousServerSocketChannel server = AsynchronousServerSocketChannel.open()) {
             server.bind(new InetSocketAddress(port));
             while (true) {
                 // В целом, как-то принять клиента нужно
                 AsynchronousSocketChannel client = server.accept().get();
-
 
                 // На случай если все со всем перемешается, контексты сделаем уникальными каждый раз
                 ReceiveContext receiveContext = new ReceiveContext();
@@ -41,15 +38,18 @@ public class Server {
                                         attachment.allocateBuffer();
                                     }
                                     if (!attachment.isFinished()) {
-                                        client.read(receiveContext.getData(), receiveContext, this);
+                                        attachment.updateReceivedOnData(result);
+                                        client.read(attachment.getData(), attachment, this);
                                     } else {
-                                        executor.submit(new ServerTask(client, receiveContext.getData(), new RespondContext()));
+                                        attachment.getData().flip();
+                                        executor.submit(new ServerTask(client, attachment.getData(), new RespondContext()));
 
                                         ReceiveContext newReceiveContext = new ReceiveContext();
                                         client.read(newReceiveContext.getDataSize(), newReceiveContext, this);
                                     }
                                 } else {
-                                    client.read(receiveContext.getDataSize(), receiveContext, this);
+                                    attachment.updateReceivedOnSized(result);
+                                    client.read(attachment.getDataSize(), attachment, this);
                                 }
                             }
 
@@ -59,7 +59,6 @@ public class Server {
                             }
                         });
             }
-
 
         } catch (Exception e) {
             e.printStackTrace();

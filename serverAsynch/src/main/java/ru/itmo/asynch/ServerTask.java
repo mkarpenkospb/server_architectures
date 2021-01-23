@@ -7,6 +7,7 @@ import ru.itmo.protocol.Protocol.IntegerArray;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,14 +36,14 @@ public class ServerTask implements Runnable {
     @Override
     public void run() {
         try {
-            List<Integer> array = IntegerArray.parseFrom(data).getArrayList();
+            List<Integer> array = new ArrayList<>(IntegerArray.parseFrom(data).getArrayList());
             insertionSort(array);
             IntegerArray response = IntegerArray.newBuilder().addAllArray(array).build();
 
             ByteBuffer buf = ByteBuffer.allocate(INT_SIZE + response.getSerializedSize());
             buf.putInt(response.getSerializedSize());
             buf.put(response.toByteArray());
-
+            buf.flip();
             respondContext.setBuffer(buf);
             //  Контекст не нужен тут особо
             client.write(respondContext.getData(), respondContext, new CompletionHandler<>() {
