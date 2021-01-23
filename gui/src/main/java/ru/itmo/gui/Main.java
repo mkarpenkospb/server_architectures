@@ -1,10 +1,15 @@
 package ru.itmo.gui;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -42,24 +47,24 @@ public class Main extends Application {
         stage.setTitle("Set testing parameters");
         Scene scene = new Scene(new Group(), 650, 150);
 
-        final ComboBox<Architecture> archComboBox = new ComboBox<>();
+        final ComboBox<String> archComboBox = new ComboBox<>();
         archComboBox.getItems().addAll(
-                Architecture.BLOCKING,
-                Architecture.NONBLOCKING,
-                Architecture.ASYNCH
+                "BLOCKING",
+                "NONBLOCKING",
+                "ASYNCH"
         );
 
-        archComboBox.setValue(Architecture.BLOCKING);
+        archComboBox.setValue("BLOCKING");
         archComboBox.setEditable(true);
 
-        final ComboBox<Parameter> estimationComboBox = new ComboBox<>();
+        final ComboBox<String> estimationComboBox = new ComboBox<>();
         estimationComboBox.getItems().addAll(
-                Parameter.N,
-                Parameter.M,
-                Parameter.DELTA
+                "N",
+                "M",
+                "DELTA"
         );
 
-        estimationComboBox.setValue(Parameter.N);
+        estimationComboBox.setValue("N");
         estimationComboBox.setEditable(true);
 
         final TextField X = new TextField(""); X.setText("10");
@@ -95,8 +100,8 @@ public class Main extends Application {
 
         final Button button = new Button ("start");
         button.setOnAction((ActionEvent e) -> {
-            experimentParameters.architecture = archComboBox.getValue();
-            experimentParameters.parameter = estimationComboBox.getValue();
+            experimentParameters.architecture = Architecture.valueOf(archComboBox.getValue());
+            experimentParameters.parameter = Parameter.valueOf(estimationComboBox.getValue());
             experimentParameters.X = Integer.parseInt(X.getText());
             experimentParameters.N = Integer.parseInt(N.getText());
             experimentParameters.M = Integer.parseInt(M.getText());
@@ -107,6 +112,37 @@ public class Main extends Application {
 
             Tester tester = new Tester(experimentParameters);
             tester.start();
+
+            NumberAxis x = new NumberAxis();
+            NumberAxis y = new NumberAxis();
+
+            LineChart<Number, Number> numberLineChart = new LineChart<Number, Number>(x,y);
+            numberLineChart.setTitle("Estimation of " + experimentParameters.parameter);
+            XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
+            XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
+            XYChart.Series<Number, Number> series3 = new XYChart.Series<>();
+
+
+            series1.setName("Sorting");
+            series2.setName("Client on server");
+            series3.setName("Client on client");
+
+            ObservableList<XYChart.Data<Number, Number>> g1 = FXCollections.observableArrayList(tester.getSorting());
+            ObservableList<XYChart.Data<Number, Number>> g2 = FXCollections.observableArrayList(tester.getClientOnServer());
+            ObservableList<XYChart.Data<Number, Number>> g3 = FXCollections.observableArrayList(tester.getClientFullTime());
+
+            series1.setData(g1);
+            series2.setData(g2);
+            series3.setData(g3);
+
+
+            Scene mainScene = new Scene(numberLineChart, 600,600);
+            numberLineChart.getData().add(series1);
+            numberLineChart.getData().add(series2);
+            Stage primaryStage = new Stage();
+            primaryStage.setScene(mainScene);
+            stage.hide();
+            primaryStage.show();
 
         });
 

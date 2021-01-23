@@ -19,16 +19,15 @@ public class Tester {
     private static int THREADS = 10;
     private Main.ExperimentParameters parameters;
 
-    private final ArrayList<XYChart.Data<Long, Double>> sorting = new ArrayList<>();
-    private final ArrayList<XYChart.Data<Long, Double>> clientOnServer = new ArrayList<>();
-    private final ArrayList<XYChart.Data<Long, Double>> clientFullTime = new ArrayList<>();
+    private final ArrayList<XYChart.Data<Number, Number>> sorting = new ArrayList<>();
+    private final ArrayList<XYChart.Data<Number, Number>> clientOnServer = new ArrayList<>();
+    private final ArrayList<XYChart.Data<Number, Number>> clientFullTime = new ArrayList<>();
 
     public Tester(Main.ExperimentParameters parameters) {
         this.parameters = parameters;
     }
 
-    //https://www.baeldung.com/java-atomic-variables
-    public class Counter {
+    public static class Counter {
         private final AtomicLong counter = new AtomicLong(0);
 
         public long getValue() {
@@ -46,13 +45,13 @@ public class Tester {
         }
     }
 
-    public ArrayList<XYChart.Data<Long, Double>> getSorting() {
+    public ArrayList<XYChart.Data<Number, Number>> getSorting() {
         return sorting;
     }
-    public ArrayList<XYChart.Data<Long, Double>> getClientOnServer() {
+    public ArrayList<XYChart.Data<Number, Number>> getClientOnServer() {
         return clientOnServer;
     }
-    public ArrayList<XYChart.Data<Long, Double>> getClientFullTime() {
+    public ArrayList<XYChart.Data<Number, Number>> getClientFullTime() {
         return clientFullTime;
     }
 
