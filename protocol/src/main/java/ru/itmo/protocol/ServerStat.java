@@ -5,8 +5,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ServerStat {
-    long sortingTime = 0;
-    long clientTime = 0;
+    private long sortingTime = 0;
+    private long clientTime = 0;
 
     ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -34,9 +34,15 @@ public class ServerStat {
             endTime = System.currentTimeMillis();
         }
 
-        public void update() {
+        public void updateSorting() {
             executor.submit(() -> {
                 sortingTime += (endTime - startTime);
+            });
+        }
+
+        public void updateClient() {
+            executor.submit(() -> {
+                clientTime += (endTime - startTime);
             });
         }
     }
@@ -50,5 +56,12 @@ public class ServerStat {
 
     public SortStat getNewSortStat() {
         return new SortStat();
+    }
+
+    public long getSortingTime() {
+        return sortingTime;
+    }
+    public long getClientTime() {
+        return clientTime;
     }
 }

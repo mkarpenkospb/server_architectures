@@ -36,7 +36,7 @@ public class ClientMain {
 
             int port = Integer.parseInt(cmd.getOptionValue("port"));
             String host = cmd.getOptionValue("host");
-            int d = Integer.parseInt(cmd.getOptionValue("delta"));
+            long d = Long.parseLong(cmd.getOptionValue("delta"));
             int x = Integer.parseInt(cmd.getOptionValue("x"));
             int n = Integer.parseInt(cmd.getOptionValue("n"));
 

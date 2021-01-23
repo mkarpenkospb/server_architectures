@@ -55,7 +55,7 @@ public class ServerTask implements Runnable {
             respondContext.setBuffer(buf);
             respondContext.setClientStat(clientTime);
             sortTime.finish();
-            sortTime.update();
+            sortTime.updateSorting();
 
             client.write(respondContext.getData(), respondContext, new CompletionHandler<>() {
                 @Override
@@ -64,7 +64,7 @@ public class ServerTask implements Runnable {
                         client.write(attachment.getData(), attachment, this);
                     } else {
                         attachment.getClientStat().finish();
-                        attachment.getClientStat().update();
+                        attachment.getClientStat().updateClient();
                     }
                 }
 

@@ -29,7 +29,7 @@ public class ReplyTask implements Runnable {
             os.write(response.toByteArray());
             os.flush();
             clientTime.finish();
-            clientTime.update();
+            clientTime.updateClient();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,39 +1,47 @@
 package ru.itmo.gui;
 
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 
-
+enum Architecture {BLOCKING, NONBLOCKING, ASYNCH};
+enum Parameter {N, M, DELTA};
 
 public class Main extends Application {
+
+    public static class ExperimentParameters {
+        Architecture architecture;
+        Parameter parameter;
+        long from;
+        long to;
+        long step;
+
+        int X;
+        int N;
+        int M;
+        int delta;
+    }
+
+
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage stage) throws Exception {
+        final ExperimentParameters experimentParameters = new ExperimentParameters();
+
         stage.setTitle("Set testing parameters");
-        Scene scene = new Scene(new Group(), 650, 100);
+        Scene scene = new Scene(new Group(), 650, 150);
         final String[] parameters = {"", ""};
 
         final ComboBox<String> archComboBox = new ComboBox<>();
@@ -54,45 +62,83 @@ public class Main extends Application {
                 "M",
                 "delta"
         );
+
         estimationComboBox.setPromptText("architectures");
         estimationComboBox.setValue("N");
         estimationComboBox.setEditable(true);
         estimationComboBox.valueProperty().addListener((ov, t, t1) -> parameters[1] = t1);
-        final TextField X = new TextField("");
+        final TextField X = new TextField(""); X.setText("10");
         X.setPrefWidth(80);
         X.setMaxWidth(40);
 
-        final TextField from = new TextField("");
+        final TextField from = new TextField(""); from.setText("1");
         from.setPrefWidth(80);
-        from.setMaxWidth(40);
+        from.setMaxWidth(80);
 
-        final TextField to = new TextField("");
+        final TextField to = new TextField(""); to.setText("20");
         to.setPrefWidth(80);
-        to.setMaxWidth(40);
+        to.setMaxWidth(80);
 
-        final TextField step = new TextField("");
+        final TextField step = new TextField(""); step.setText("5");
         step.setPrefWidth(80);
-        step.setMaxWidth(40);
+        step.setMaxWidth(80);
 
 
-        final TextField N = new TextField("");
+        final TextField N = new TextField(""); N.setText("10");
         N.setPrefWidth(80);
-        N.setMaxWidth(40);
+        N.setMaxWidth(80);
 
-        final TextField M = new TextField("");
+        final TextField M = new TextField(""); M.setText("10");
         M.setPrefWidth(80);
-        M.setMaxWidth(40);
+        M.setMaxWidth(80);
 
-        final TextField Delta = new TextField("");
+        final TextField Delta = new TextField(""); Delta.setText("10");
         Delta.setPrefWidth(80);
-        Delta.setMaxWidth(40);
+        Delta.setMaxWidth(80);
 
         // --------------- on button --------------------
 
         final Button button = new Button ("start");
+        button.setOnAction((ActionEvent e) -> {
+            switch (archComboBox.getValue()) {
+                case "blocking":
+                    experimentParameters.architecture = Architecture.BLOCKING;
+                    break;
+                case "nonblocking":
+                    experimentParameters.architecture = Architecture.NONBLOCKING;
+                    break;
+                case "asynch":
+                    experimentParameters.architecture = Architecture.ASYNCH;
+                    break;
+                default:
+                    throw new RuntimeException("Unknown server type");
+            }
+
+            switch (estimationComboBox.getValue()) {
+                case "N":
+                    experimentParameters.parameter = Parameter.N;
+                    break;
+                case "M":
+                    experimentParameters.parameter = Parameter.M;
+                    break;
+                case "delta":
+                    experimentParameters.parameter = Parameter.DELTA;
+                    break;
+                default:
+                    throw new RuntimeException("Unknown Param Type");
+            }
+
+            experimentParameters.X = Integer.parseInt(X.getText());
+            experimentParameters.N = Integer.parseInt(N.getText());
+            experimentParameters.M = Integer.parseInt(M.getText());
+            experimentParameters.delta = Integer.parseInt(Delta.getText());
+            experimentParameters.from = Long.parseLong(from.getText());
+            experimentParameters.to = Long.parseLong(to.getText());
+            experimentParameters.step = Long.parseLong(step.getText());
 
 
-
+            new Tester(experimentParameters).start();
+        });
 
         GridPane grid = new GridPane();
 
@@ -124,6 +170,10 @@ public class Main extends Application {
         grid.add(M, 3, 2);
         grid.add(new Label("  delta: "), 4, 2);
         grid.add(Delta, 5, 2);
+
+        // --------------------------- forth row -------------------------------
+
+        grid.add(button, 0, 3);
 
         Group root = (Group)scene.getRoot();
         root.getChildren().add(grid);

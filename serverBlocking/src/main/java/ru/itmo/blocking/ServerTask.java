@@ -31,7 +31,7 @@ public class ServerTask implements Callable<List<Integer>> {
         sortTime.start();
         insertionSort();
         sortTime.finish();
-        sortTime.update();
+        sortTime.updateSorting();
 
 //        System.out.println(data);
         return data;

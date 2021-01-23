@@ -1,5 +1,6 @@
 package ru.itmo.blocking;
 
+import ru.itmo.protocol.Server;
 import ru.itmo.protocol.ServerStat;
 
 import java.io.IOException;
@@ -9,9 +10,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ServerBlocking {
+public class ServerBlocking implements Server {
 
-    private final ServerStat statistic = new ServerStat();
+    private ServerStat statistic = new ServerStat();
     private final int port;
     private final int threadsNum;
 
@@ -24,7 +25,7 @@ public class ServerBlocking {
         return statistic;
     }
 
-    void start() throws IOException {
+    public void start() {
         ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
         try(ServerSocket server = new ServerSocket(port)) {
             System.out.print("Server started");
@@ -35,6 +36,13 @@ public class ServerBlocking {
                 thread.setDaemon(true);
                 thread.start();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    @Override
+    public void updateStatistic() {
+        statistic = new ServerStat();
     }
 }

@@ -1,5 +1,6 @@
 package ru.itmo.nonblocking;
 
+import ru.itmo.protocol.Server;
 import ru.itmo.protocol.ServerStat;
 
 import java.net.InetSocketAddress;
@@ -12,8 +13,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ServerNonBlocking {
-    private ServerStat statistic;
+public class ServerNonBlocking implements Server {
+    private ServerStat statistic = new ServerStat();
     private long ids = 0;
     private final int port;
     private final int threadsNum;
@@ -61,6 +62,16 @@ public class ServerNonBlocking {
 
 
 
+    }
+
+    @Override
+    public ServerStat getStatistic() {
+        return statistic;
+    }
+
+    @Override
+    public void updateStatistic() {
+        statistic = new ServerStat();
     }
 
 }

@@ -1,5 +1,6 @@
 package ru.itmo.asynch;
 
+import ru.itmo.protocol.Server;
 import ru.itmo.protocol.ServerStat;
 
 import java.net.InetSocketAddress;
@@ -9,8 +10,8 @@ import java.nio.channels.CompletionHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ServerAsynch {
-    private final ServerStat statistic = new ServerStat();
+public class ServerAsynch implements Server {
+    private ServerStat statistic = new ServerStat();
     private final int port;
     private final int threadsNum;
 
@@ -72,5 +73,10 @@ public class ServerAsynch {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void updateStatistic() {
+        statistic = new ServerStat();
     }
 }

@@ -15,10 +15,10 @@ public class Client {
     private final int port;
     private final int x;
     private final int n;
-    private final int d;
+    private final long d;
 
     //TODO N в сообщеие хз зачем
-    public Client(String host, int port, int x, int n, int d) {
+    public Client(String host, int port, int x, int n, long d) {
         this.host = host;
         this.port = port;
         this.x = x;
