@@ -12,9 +12,6 @@ import java.util.concurrent.ExecutorService;
 public class SelectorReceiver implements Runnable {
     private final Selector selector;
     private final ExecutorService executor;
-
-//    Map<int> has
-
     public SelectorReceiver(Selector selector, ExecutorService executor) {
         this.selector = selector;
         this.executor = executor;

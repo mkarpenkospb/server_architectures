@@ -17,7 +17,6 @@ public class Server {
     }
 
 
-
     void start() throws IOException {
         ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
         try(ServerSocket server = new ServerSocket(port)) {

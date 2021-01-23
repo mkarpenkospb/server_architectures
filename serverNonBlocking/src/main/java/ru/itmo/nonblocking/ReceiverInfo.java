@@ -15,7 +15,9 @@ public class ReceiverInfo {
     private static final int INT_SIZE = 4;
 
     private int messageSize;
+    // TODO: убрать это, там еть hasRemaining
     private int received = 0;
+    // TODO: data каждый раз новая все равно, так что можно парсинг потокам в пуле оставить
     private ByteBuffer data;
     private final ByteBuffer dataSize = ByteBuffer.allocate(INT_SIZE);
     private final ClientTaskQueue clientTasks;
