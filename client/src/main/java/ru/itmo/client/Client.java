@@ -51,7 +51,7 @@ public class Client {
                 }
 
                 IntegerArray serverResponse = IntegerArray.parseFrom(buffer);
-                System.out.println(serverResponse.getArrayList());
+//                System.out.println(serverResponse.getArrayList());
 
                 // ------------------ sleep --------------------
                 Thread.sleep(d);
