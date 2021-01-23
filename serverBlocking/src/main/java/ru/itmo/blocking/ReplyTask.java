@@ -16,7 +16,7 @@ public class ReplyTask implements Runnable {
     public ReplyTask(DataOutputStream os, List<Integer> sortedData, ServerStat.ClientStat clientTime) {
         this.os = os;
         this.sortedData = sortedData;
-        this.clientTime =clientTime;
+        this.clientTime = clientTime;
     }
 
     @Override

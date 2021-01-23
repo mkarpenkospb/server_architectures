@@ -37,7 +37,8 @@ public class SelectorReceiver implements Runnable {
                         }
                         info.receiveData();
                         if (info.isReady()) {
-                            executor.submit(new ServerTask(info.getClientTasks(), info.getMessage(), info.getStatistic().getNewSortStat(), info.getClientTime()));
+                            executor.submit(new ServerTask(info.getClientTasks(), info.getMessage(),
+                                    info.getStatistic().getNewSortStat(), info.getClientTime()));
                             info.reset();
                         }
                     }

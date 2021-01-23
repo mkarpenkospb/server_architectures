@@ -32,9 +32,8 @@ public class ServerAsynch implements Server {
             while (true) {
                 // В целом, как-то принять клиента нужно
                 AsynchronousSocketChannel client = server.accept().get();
-
                 // На случай если все со всем перемешается, контексты сделаем уникальными каждый раз
-                ReceiveContext receiveContext = new ReceiveContext();
+                ReceiveContext receiveContext = new ReceiveContext(statistic.getNewClientStat());
 
                 client.read(receiveContext.getDataSize(), receiveContext,
                         new CompletionHandler<>() {
@@ -51,10 +50,10 @@ public class ServerAsynch implements Server {
                                     } else {
                                         attachment.getData().flip();
                                         executor.submit(new ServerTask(client, attachment.getData(), new RespondContext(),
-                                                statistic.getNewClientStat(), statistic
+                                                attachment.getClientTime(), statistic
                                                 ));
 
-                                        ReceiveContext newReceiveContext = new ReceiveContext();
+                                        ReceiveContext newReceiveContext = new ReceiveContext(statistic.getNewClientStat());
                                         client.read(newReceiveContext.getDataSize(), newReceiveContext, this);
                                     }
                                 } else {
@@ -62,7 +61,6 @@ public class ServerAsynch implements Server {
                                     client.read(attachment.getDataSize(), attachment, this);
                                 }
                             }
-
                             @Override
                             public void failed(Throwable exc, ReceiveContext attachment) {
                                 exc.printStackTrace();

@@ -1,5 +1,7 @@
 package ru.itmo.asynch;
 
+import ru.itmo.protocol.ServerStat;
+
 import java.nio.ByteBuffer;
 
 public class ReceiveContext {
@@ -10,6 +12,16 @@ public class ReceiveContext {
     private ByteBuffer data;
     private boolean sized = false;
     private boolean finished = false;
+    private final ServerStat.ClientStat clientTime;
+
+    public ReceiveContext(ServerStat.ClientStat clientTime) {
+        this.clientTime = clientTime;
+        clientTime.start();
+    }
+
+    public ServerStat.ClientStat getClientTime() {
+        return clientTime;
+    }
 
     public void updateReceivedOnSized(int value) {
         received += value;

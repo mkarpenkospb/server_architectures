@@ -10,16 +10,13 @@ import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 
-enum Architecture {BLOCKING, NONBLOCKING, ASYNCH};
-enum Parameter {N, M, DELTA};
+enum Architecture {BLOCKING, NONBLOCKING, ASYNCH}
+enum Parameter {N, M, DELTA}
 
 public class Main extends Application {
 
@@ -34,15 +31,15 @@ public class Main extends Application {
         int M;
         int delta;
     }
-
-
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
         final ExperimentParameters experimentParameters = new ExperimentParameters();
+        final ProgressBar pb = new ProgressBar();
+        pb.setProgress(0);
 
         stage.setTitle("Set testing parameters");
         Scene scene = new Scene(new Group(), 650, 150);
@@ -110,13 +107,13 @@ public class Main extends Application {
             experimentParameters.to = Long.parseLong(to.getText());
             experimentParameters.step = Long.parseLong(step.getText());
 
-            Tester tester = new Tester(experimentParameters);
+            Tester tester = new Tester(experimentParameters, pb);
             tester.start();
 
             NumberAxis x = new NumberAxis();
             NumberAxis y = new NumberAxis();
 
-            LineChart<Number, Number> numberLineChart = new LineChart<Number, Number>(x,y);
+            LineChart<Number, Number> numberLineChart = new LineChart<>(x, y);
             numberLineChart.setTitle("Estimation of " + experimentParameters.parameter);
             XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
             XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
@@ -135,15 +132,14 @@ public class Main extends Application {
             series2.setData(g2);
             series3.setData(g3);
 
-
             Scene mainScene = new Scene(numberLineChart, 600,600);
             numberLineChart.getData().add(series1);
             numberLineChart.getData().add(series2);
+            numberLineChart.getData().add(series3);
             Stage primaryStage = new Stage();
             primaryStage.setScene(mainScene);
             stage.hide();
             primaryStage.show();
-
         });
 
         GridPane grid = new GridPane();
@@ -180,6 +176,7 @@ public class Main extends Application {
         // --------------------------- forth row -------------------------------
 
         grid.add(button, 0, 3);
+        grid.add(pb, 1, 3);
 
         Group root = (Group)scene.getRoot();
         root.getChildren().add(grid);

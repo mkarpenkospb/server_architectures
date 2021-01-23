@@ -26,14 +26,22 @@ public class Client {
         this.d = d;
     }
 
+    boolean isSorted(List<Integer> array) {
+        for (int i = 0; i < array.size() - 1; i++) {
+            if (array.get(i) > array.get(i + 1))
+                return false;
+        }
+        return true;
+    }
+
     public long start() {
         long start = System.currentTimeMillis();
-        List<Integer> data = generateArray();
         try (Socket socket = new Socket(host, port);
              DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-             DataInputStream is = new DataInputStream(socket.getInputStream());
+             DataInputStream is = new DataInputStream(socket.getInputStream())
         ) {
             for (int i = 0; i < x; i++) {
+                List<Integer> data = generateArray();
                 // ------------------ send request ----------------
                 IntegerArray request = IntegerArray.newBuilder()
                         .addAllArray(data).build();
@@ -52,6 +60,9 @@ public class Client {
                 }
 
                 IntegerArray serverResponse = IntegerArray.parseFrom(buffer);
+//                if (!isSorted(serverResponse.getArrayList())) {
+//                    throw new RuntimeException("AAA");
+//                }
 //                System.out.println(serverResponse.getArrayList());
 
                 // ------------------ sleep --------------------
@@ -60,6 +71,7 @@ public class Client {
         } catch (Exception e) {
             e.printStackTrace();
         }
+//        System.out.println("Client finished");
         return System.currentTimeMillis() - start;
     }
 

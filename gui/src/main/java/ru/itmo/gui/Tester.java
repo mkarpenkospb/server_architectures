@@ -1,6 +1,7 @@
 package ru.itmo.gui;
 
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.ProgressBar;
 import ru.itmo.asynch.ServerAsynch;
 import ru.itmo.blocking.ServerBlocking;
 import ru.itmo.client.Client;
@@ -9,7 +10,6 @@ import ru.itmo.protocol.Server;
 import ru.itmo.protocol.ServerStat;
 
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -18,13 +18,16 @@ public class Tester {
     private static String HOST = "localhost";
     private static int THREADS = 10;
     private Main.ExperimentParameters parameters;
+    private final ProgressBar pb;
+
 
     private final ArrayList<XYChart.Data<Number, Number>> sorting = new ArrayList<>();
     private final ArrayList<XYChart.Data<Number, Number>> clientOnServer = new ArrayList<>();
     private final ArrayList<XYChart.Data<Number, Number>> clientFullTime = new ArrayList<>();
 
-    public Tester(Main.ExperimentParameters parameters) {
+    public Tester(Main.ExperimentParameters parameters, ProgressBar pb) {
         this.parameters = parameters;
+        this.pb = pb;
     }
 
     public static class Counter {
@@ -60,9 +63,7 @@ public class Tester {
         Counter cnt = new Counter();
 
         for (int i = 0; i < M; i++) {
-            Thread t = new Thread(() -> {
-                cnt.increment(new Client(HOST, PORT, parameters.X, N, delta).start());
-            });
+            Thread t = new Thread(() -> cnt.increment(new Client(HOST, PORT, M, N, delta).start()));
             threads.add(t);
         }
         threads.forEach(Thread::start);
@@ -98,18 +99,26 @@ public class Tester {
         Thread serverThread = new Thread(finalServer::start);
         serverThread.setDaemon(true);
         serverThread.start();
-        ServerStat stat = server.getStatistic();
         Function<Long, Long> runClientsWithParam = getRunningClientsFunction();
         Function<Long, Double> getDenominator = getDenominatorFunction();
         try {
+            long length = parameters.to - parameters.from;
+            long path;
             for (long p = parameters.from; p < parameters.to; p += parameters.step) {
+                ServerStat stat = server.getStatistic();
+                path = (p - parameters.from);
                 long res = runClientsWithParam.apply(p);
                 Thread.sleep(100);
                 double denominator = getDenominator.apply(p);
+
                 sorting.add(new XYChart.Data<>(p, (double) stat.getSortingTime() / denominator));
                 clientOnServer.add(new XYChart.Data<>(p, (double) stat.getClientTime() /denominator));
                 clientFullTime.add(new XYChart.Data<>(p, (double) res / denominator));
                 server.updateStatistic();
+                double progress = (double) path / (double) length;
+                System.out.print((double)Math.round(progress * 100d) / 100d + ", ");
+                // не работает(
+                pb.setProgress( progress);
             }
             System.out.println("finished");
         } catch (Exception e) {
@@ -121,9 +130,9 @@ public class Tester {
         switch (parameters.parameter) {
             case N:
             case DELTA:
-                return (Long n) -> (double) parameters.M / (double) parameters.X;
+                return (Long n) -> (double) parameters.M * (double) parameters.X;
             case M:
-                return (Long m) -> (double) m / (double) parameters.X;
+                return (Long m) -> (double) m * (double) parameters.X;
             default:
                 throw new IllegalStateException("Unexpected value: " + parameters.parameter);
         }

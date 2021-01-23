@@ -29,15 +29,16 @@ public class SenderInfo {
         this.clientTime = clientTime;
     }
 
-    public ServerStat.ClientStat getClientTime() {
-        return clientTime;
-    }
-
     public void sendData() {
         try {
             if (data.hasRemaining()) {
                 socketChannel.write(data);
-            } else {
+            }
+            if (!data.hasRemaining()) {
+                if (!clientTime.isFinished()) {
+                    clientTime.finish();
+                    clientTime.updateClient();
+                }
                 ready = true;
             }
         } catch (Exception e) {

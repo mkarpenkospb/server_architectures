@@ -36,9 +36,6 @@ public class ReceiverInfo {
         this.statistic = statistic;
     }
 
-    public SocketChannel getSocketChannel() {
-        return socketChannel;
-    }
 
     public ServerStat.ClientStat getClientTime() {
         return clientTime;
@@ -105,8 +102,7 @@ public class ReceiverInfo {
 
     List<Integer> getMessage() throws InvalidProtocolBufferException {
         IntegerArray request = IntegerArray.parseFrom(data);
-        List<Integer> array = new ArrayList<>(request.getArrayList());
-        return array;
+        return new ArrayList<>(request.getArrayList());
     }
 
     public void reset() {

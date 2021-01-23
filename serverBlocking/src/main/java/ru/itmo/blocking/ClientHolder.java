@@ -41,6 +41,9 @@ public class ClientHolder implements Runnable {
             while (true) {
                 int messageSize = is.readInt();
 
+                ServerStat.ClientStat clientTime = statistic.getNewClientStat();
+                clientTime.start();
+
                 byte[] buffer = new byte[messageSize];
                 int received = 0;
                 while (received != messageSize) {
@@ -49,8 +52,7 @@ public class ClientHolder implements Runnable {
 
                 IntegerArray clientData = IntegerArray.parseFrom(buffer);
                 List<Integer> copy = new ArrayList<>(clientData.getArrayList());
-                ServerStat.ClientStat clientTime = statistic.getNewClientStat();
-                clientTime.start();
+
                 Future<List<Integer>> future = executor.submit(new ServerTask(copy, statistic.getNewSortStat()));
                 replier.execute(new ReplyTask(os, future.get(), clientTime));
             }

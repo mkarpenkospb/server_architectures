@@ -34,10 +34,6 @@ public class SelectorSender implements Runnable {
                             info.sendData();
                         }
                         if (info.isReady() || info.isEmpty()) {
-                            if (info.getClientTime() != null && info.getClientTime().isFinished()) {
-                                info.getClientTime().finish();
-                                info.getClientTime().updateClient();
-                            }
                             info.reset();
                             ClientTaskQueue.StatBuffer head = tasks.getNext();
                             if (head == null) {
